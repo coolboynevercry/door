@@ -3,6 +3,7 @@
   "buildCommand": "cd client && npm install && npm run build",
   "outputDirectory": "client/dist",
   "installCommand": "npm install @vercel/postgres @vercel/blob jsonwebtoken bcryptjs sequelize pg",
+  "public": true,
   "functions": {
     "api/**/*.js": {
       "memory": 1024,
