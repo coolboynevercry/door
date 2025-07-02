@@ -9,7 +9,7 @@
             <span class="text-primary-200">品质生活</span>
           </h1>
           <p class="text-xl md:text-2xl text-primary-100 mb-8">
-            宝得利门窗，为您打造舒适安全的家居环境
+            宝得利门窗，为您打造舒适安全的家居环境hello world 
           </p>
           <div class="flex flex-col sm:flex-row gap-4">
             <button @click="scrollToProducts" 
