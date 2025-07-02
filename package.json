@@ -1,19 +1,37 @@
 {
-  "name": "baodeli-door-window-system",
-  "version": "1.0.0",
-  "description": "宝得利门窗订购网站",
+  "name": "baodeli-vercel-fullstack",
+  "version": "2.0.0",
+  "description": "宝得利门窗订购网站 - Vercel全栈版本",
+  "private": true,
+  "type": "module",
   "scripts": {
-    "start": "npm run start:server",
-    "start:server": "cd server && npm start",
-    "start:client": "cd client && npm run dev",
-    "dev": "concurrently \"npm run start:server\" \"npm run start:client\"",
-    "install:all": "npm install && cd server && npm install && cd ../client && npm install"
+    "dev": "vercel dev",
+    "build": "cd client && npm install && npm run build",
+    "start": "vercel --prod",
+    "init-db": "node scripts/initVercelDB.js",
+    "migrate": "node scripts/migrateToVercel.js"
   },
   "dependencies": {
-    "sqlite3": "^5.1.7"
+    "@vercel/postgres": "^0.10.0",
+    "@vercel/blob": "^0.15.1",
+    "jsonwebtoken": "^9.0.2",
+    "bcryptjs": "^2.4.3"
   },
   "devDependencies": {
-    "concurrently": "^7.6.0",
-    "node-fetch": "^2.7.0"
-  }
+    "vercel": "^37.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": [
+    "vercel",
+    "serverless",
+    "vue",
+    "postgres",
+    "ecommerce",
+    "doors",
+    "windows"
+  ],
+  "author": "宝得利门窗",
+  "license": "MIT"
 }

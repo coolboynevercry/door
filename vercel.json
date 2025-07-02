@@ -2,6 +2,10 @@
   "version": 2,
   "builds": [
     {
+      "src": "api/**/*.js",
+      "use": "@vercel/node"
+    },
+    {
       "src": "client/dist/**",
       "use": "@vercel/static"
     }
@@ -9,16 +13,47 @@
   "routes": [
     {
       "src": "/api/(.*)",
-      "dest": "https://your-backend-url.com/api/$1"
-    },
-    {
-      "src": "/uploads/(.*)",
-      "dest": "https://your-backend-url.com/uploads/$1"
+      "dest": "/api/$1"
     },
     {
       "src": "/(.*)",
       "dest": "/client/dist/$1"
     }
   ],
-  "outputDirectory": "client/dist"
+  "functions": {
+    "api/**/*.js": {
+      "runtime": "nodejs18.x",
+      "memory": 1024,
+      "maxDuration": 10
+    }
+  },
+  "env": {
+    "POSTGRES_URL": "@postgres_url",
+    "JWT_SECRET": "@jwt_secret",
+    "ADMIN_USERNAME": "@admin_username",
+    "ADMIN_PASSWORD": "@admin_password",
+    "BLOB_READ_WRITE_TOKEN": "@blob_token"
+  },
+  "buildCommand": "cd client && npm install && npm run build",
+  "outputDirectory": "client/dist",
+  "installCommand": "npm install @vercel/postgres @vercel/blob jsonwebtoken bcryptjs",
+  "headers": [
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "*"
+        },
+        {
+          "key": "Access-Control-Allow-Methods",
+          "value": "GET, POST, PUT, DELETE, OPTIONS"
+        },
+        {
+          "key": "Access-Control-Allow-Headers",
+          "value": "Content-Type, Authorization"
+        }
+      ]
+    }
+  ]
 } 

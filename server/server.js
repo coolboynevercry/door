@@ -42,6 +42,7 @@ app.use(bodyParser.urlencoded({ extended: true, limit: '10mb' }));
 app.use('/uploads', express.static('uploads'));
 
 // API路由
+app.use('/api/health', require('./routes/health'));         // 健康检查路由
 app.use('/api/admin', adminRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/orders', orderRoutes);

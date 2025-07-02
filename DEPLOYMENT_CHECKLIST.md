@@ -1,50 +1,55 @@
-# Vercel部署清单
+# Vercel全栈部署清单
 
-## 部署前准备 ✅
-- [x] 项目文件检查完成
-- [x] 前端构建成功
-- [x] 环境变量模板已创建
-- [ ] 数据库数据已导出 (运行: cd server && node scripts/exportData.js)
+## ✅ 准备工作
+- [x] 环境依赖检查完成
+- [x] 项目依赖安装完成
+- [x] 前端构建完成
+- [x] API结构验证完成
+- [x] 环境变量模板生成完成
 
-## Vercel平台配置 ⬜
-- [ ] 创建Vercel项目
-- [ ] 连接GitHub仓库
-- [ ] 创建PostgreSQL数据库
-- [ ] 配置环境变量 (参考 .env.vercel.template)
-- [ ] 设置构建配置
+## 🔄 下一步操作
 
-## 数据迁移 ⬜
-- [ ] 导出SQLite数据
-- [ ] 转换数据格式 (SQLite → PostgreSQL)
-- [ ] 导入数据到新数据库
-- [ ] 验证数据完整性
+### 1. GitHub仓库准备
+```bash
+git add .
+git commit -m "重构为Vercel Serverless Functions"
+git push origin main
+```
 
-## 功能迁移 ⬜
-- [ ] 文件上传迁移到云存储
-- [ ] 图片路径更新
-- [ ] API接口测试
-- [ ] 认证功能测试
+### 2. Vercel项目创建
+1. 访问 https://vercel.com
+2. 点击 "New Project"
+3. 导入GitHub仓库
+4. 保持默认设置
 
-## 后端选择 ⬜
-选择以下一种方式：
+### 3. 数据库配置
+1. 在Vercel项目中点击 "Storage"
+2. 创建 PostgreSQL 数据库
+3. 复制连接字符串
 
-### 方案A: 分离部署 (推荐)
-- [ ] 前端部署到Vercel
-- [ ] 后端部署到Railway/Render
-- [ ] 更新前端API地址
+### 4. 环境变量设置
+在Vercel项目设置中添加：
+- JWT_SECRET
+- ADMIN_USERNAME
+- ADMIN_PASSWORD
 
-### 方案B: 全栈部署 (高级)
-- [ ] 重构Express路由为Vercel API Routes
-- [ ] 处理Serverless函数限制
-- [ ] 测试冷启动性能
+### 5. 数据迁移（如有数据）
+```bash
+export POSTGRES_URL="vercel-postgres://..."
+npm run migrate
+```
 
-## 上线验证 ⬜
-- [ ] 用户注册登录
-- [ ] 商品浏览
-- [ ] 订单创建
-- [ ] 管理后台
-- [ ] 文件上传
-- [ ] 性能测试
+### 6. 部署验证
+```bash
+# 测试API
+curl https://your-app.vercel.app/api/health
+curl https://your-app.vercel.app/api/products
+```
 
----
-📝 注意：建议先使用方案A进行分离部署，等功能稳定后再考虑方案B
+## 🎯 本地开发
+```bash
+# 启动本地开发服务器
+vercel dev
+```
+
+访问 http://localhost:3000 测试应用
