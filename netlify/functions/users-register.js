@@ -1,18 +1,12 @@
 // Netlify Functions - 用户注册API（使用原生pg，无需验证码）
-const bcryptjs = require('bcryptjs');
-const jwt = require('jsonwebtoken');
 const { Client } = require('pg');
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your-default-secret-key';
-
-// 原生pg数据库连接
+// 原生pg数据库连接 - 使用和test-neon-direct相同的成功模式
 const createConnection = async () => {
-  const databaseUrl = process.env.NETLIFY_DATABASE_URL || 
-                     process.env.NEON_DATABASE_URL || 
-                     process.env.DATABASE_URL;
+  const databaseUrl = process.env.NETLIFY_DATABASE_URL;
   
   if (!databaseUrl) {
-    throw new Error('数据库URL未配置');
+    throw new Error('Neon环境变量未设置');
   }
 
   const client = new Client({ connectionString: databaseUrl });
@@ -151,8 +145,10 @@ exports.handler = async (event, context) => {
         };
       }
 
-      // 加密密码
-      const hashedPassword = await bcryptjs.hash(password, 12);
+      // 简单密码加密（使用Node.js内置crypto）
+      const crypto = require('crypto');
+      const salt = crypto.randomBytes(16).toString('hex');
+      const hashedPassword = crypto.pbkdf2Sync(password, salt, 1000, 64, 'sha256').toString('hex') + ':' + salt;
 
       // 创建用户（使用原生pg）
       const userResult = await client.query(`
@@ -163,17 +159,14 @@ exports.handler = async (event, context) => {
 
       const user = userResult.rows[0];
 
-    // 生成JWT token
-    const token = jwt.sign(
-      { 
+      // 生成简单token（使用base64编码）
+      const tokenPayload = {
         userId: user.id,
         phone: user.phone,
         role: user.role,
-        platform: 'netlify'
-      },
-      JWT_SECRET,
-      { expiresIn: '30d' }
-    );
+        timestamp: Date.now()
+      };
+      const token = Buffer.from(JSON.stringify(tokenPayload)).toString('base64');
 
       // 返回用户信息（不包含密码）
       const userInfo = {
