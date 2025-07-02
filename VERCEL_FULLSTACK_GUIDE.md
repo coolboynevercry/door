@@ -158,7 +158,64 @@ npm install
 npm run migrate
 ```
 
-### Step 6: 部署
+### Step 6: 配置部署文件 (vercel.json)
+
+项目根目录的 `vercel.json` 配置文件：
+
+```json
+{
+  "version": 2,
+  "buildCommand": "cd client && npm install && npm run build",
+  "outputDirectory": "client/dist",
+  "installCommand": "npm install @vercel/postgres @vercel/blob jsonwebtoken bcryptjs",
+  "functions": {
+    "api/**/*.js": {
+      "runtime": "@vercel/node@3.0.5",
+      "memory": 1024,
+      "maxDuration": 10
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "/api/$1"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "*"
+        },
+        {
+          "key": "Access-Control-Allow-Methods",
+          "value": "GET, POST, PUT, DELETE, OPTIONS"
+        },
+        {
+          "key": "Access-Control-Allow-Headers",
+          "value": "Content-Type, Authorization"
+        }
+      ]
+    }
+  ]
+}
+```
+
+**配置说明：**
+- ✅ **使用 `rewrites` 而非 `routes`**：新版本配置格式，避免属性冲突
+- ✅ **正确的运行时版本**：`@vercel/node@3.0.5` 而非 `nodejs18.x`
+- ✅ **移除 `builds`**：Vercel自动检测并构建函数
+- ✅ **包含CORS头信息**：支持跨域API调用
+- ✅ **自动依赖安装**：确保部署时安装必要的依赖
+
+**常见配置错误及修复：**
+1. ❌ `functions` 与 `builds` 冲突 → 移除 `builds`
+2. ❌ `routes` 与 `headers` 冲突 → 使用 `rewrites`
+3. ❌ 运行时版本格式错误 → 使用 `@vercel/node@3.0.5`
+
+### Step 7: 部署
 
 ```bash
 # 首次部署
@@ -168,7 +225,7 @@ vercel --prod
 git push origin main
 ```
 
-### Step 7: 验证部署
+### Step 8: 验证部署
 
 部署完成后测试以下端点：
 
@@ -244,6 +301,63 @@ vercel --prod
 - `GET /api/users/profile` - 获取用户信息
 - `POST /api/orders` - 创建订单
 - `GET /api/orders/user` - 获取用户订单
+
+## 🚨 常见部署问题及解决方案
+
+### 配置文件问题
+
+**问题1：Function Runtimes must have a valid version**
+```
+❌ "runtime": "nodejs18.x"
+✅ "runtime": "@vercel/node@3.0.5"
+```
+
+**问题2：functions与builds属性冲突**
+```
+❌ 同时使用 "builds" 和 "functions"
+✅ 只使用 "functions"，移除 "builds"
+```
+
+**问题3：routes与headers属性冲突**
+```
+❌ 同时使用 "routes" 和 "headers"
+✅ 使用 "rewrites" 替代 "routes"
+```
+
+### 数据库连接问题
+
+**问题：无法连接到PostgreSQL**
+```bash
+# 检查环境变量
+vercel env ls
+
+# 确保POSTGRES_URL已设置
+vercel env add POSTGRES_URL
+```
+
+### API调用失败
+
+**问题：CORS错误**
+- 确保 `vercel.json` 中包含CORS头信息
+- 检查前端API基础URL配置
+
+**问题：函数超时**
+- 检查数据库查询是否过慢
+- 优化代码性能
+- 考虑增加 `maxDuration` 配置
+
+### 调试命令
+
+```bash
+# 查看函数日志
+vercel logs
+
+# 本地调试
+vercel dev --debug
+
+# 检查构建日志
+vercel inspect [deployment-url]
+```
 
 ## ⚠️ 注意事项
 

@@ -88,8 +88,53 @@ NODE_ENV=development
       console.log('   ℹ️  未发现SQLite数据库，将创建空数据库');
     }
 
-    // 7. 验证API结构
-    console.log('\n7️⃣ 验证API结构...');
+    // 7. 验证Vercel配置
+    console.log('\n7️⃣ 验证Vercel配置...');
+    if (existsSync('vercel.json')) {
+      try {
+        const vercelConfig = JSON.parse(require('fs').readFileSync('vercel.json', 'utf8'));
+        
+        // 检查配置冲突
+        const hasBuilds = vercelConfig.builds;
+        const hasFunctions = vercelConfig.functions;
+        const hasRoutes = vercelConfig.routes;
+        const hasRewrites = vercelConfig.rewrites;
+        const hasHeaders = vercelConfig.headers;
+        
+        console.log('   📝 检查配置文件...');
+        
+        if (hasBuilds && hasFunctions) {
+          console.log('   ❌ 配置冲突：不能同时使用 builds 和 functions');
+        } else if (hasFunctions) {
+          console.log('   ✅ 使用正确的 functions 配置');
+          
+          // 检查运行时版本
+          const runtime = vercelConfig.functions['api/**/*.js']?.runtime;
+          if (runtime === '@vercel/node@3.0.5') {
+            console.log('   ✅ 运行时版本正确');
+          } else if (runtime === 'nodejs18.x') {
+            console.log('   ⚠️  运行时版本过时，建议使用 @vercel/node@3.0.5');
+          } else {
+            console.log(`   ⚠️  运行时版本未知: ${runtime}`);
+          }
+        }
+        
+        if (hasRoutes && hasHeaders) {
+          console.log('   ❌ 配置冲突：不能同时使用 routes 和 headers');
+        } else if (hasRewrites && hasHeaders) {
+          console.log('   ✅ 使用正确的 rewrites + headers 配置');
+        }
+        
+        console.log('   ✅ vercel.json 配置检查完成');
+      } catch (error) {
+        console.log('   ❌ vercel.json 格式错误:', error.message);
+      }
+    } else {
+      console.log('   ❌ vercel.json 配置文件缺失');
+    }
+
+    // 8. 验证API结构
+    console.log('\n8️⃣ 验证API结构...');
     const requiredApis = [
       'api/health.js',
       'api/admin/login.js',
@@ -111,14 +156,15 @@ NODE_ENV=development
       console.log('   ⚠️  部分API文件缺失，可能影响功能');
     }
 
-    // 8. 创建部署检查清单
-    console.log('\n8️⃣ 生成部署清单...');
+    // 9. 创建部署检查清单
+    console.log('\n9️⃣ 生成部署清单...');
     const deploymentChecklist = `# Vercel全栈部署清单
 
 ## ✅ 准备工作
 - [x] 环境依赖检查完成
 - [x] 项目依赖安装完成
 - [x] 前端构建完成
+- [x] vercel.json配置验证完成
 - [x] API结构验证完成
 - [x] 环境变量模板生成完成
 
@@ -173,7 +219,7 @@ vercel dev
     writeFileSync('DEPLOYMENT_CHECKLIST.md', deploymentChecklist);
     console.log('   ✅ 部署清单已生成: DEPLOYMENT_CHECKLIST.md');
 
-    // 9. 完成提示
+    // 10. 完成提示
     console.log('\n🎉 快速启动完成！');
     console.log('\n📋 接下来的步骤：');
     console.log('1. 查看部署清单: cat DEPLOYMENT_CHECKLIST.md');

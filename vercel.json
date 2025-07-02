@@ -5,7 +5,6 @@
   "installCommand": "npm install @vercel/postgres @vercel/blob jsonwebtoken bcryptjs",
   "functions": {
     "api/**/*.js": {
-      "runtime": "nodejs18.x",
       "memory": 1024,
       "maxDuration": 10
     }
