@@ -49,7 +49,24 @@ exports.handler = async (event, context) => {
   }
 
   try {
-    const client = await createConnection();
+    let client;
+    try {
+      client = await createConnection();
+    } catch (dbError) {
+      console.error('数据库连接失败:', dbError);
+      return {
+        statusCode: 500,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          success: false,
+          error: '数据库连接失败',
+          details: dbError.message
+        })
+      };
+    }
 
     try {
       // 创建用户表（如果不存在）
