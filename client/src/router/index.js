@@ -1,4 +1,4 @@
-import { createRouter, createWebHistory } from 'vue-router'
+import { createRouter, createWebHistory, createWebHashHistory } from 'vue-router'
 import Home from '../views/Home.vue'
 import ProductDetail from '../views/ProductDetail.vue'
 import Order from '../views/Order.vue'
@@ -113,7 +113,10 @@ const routes = [
 ]
 
 const router = createRouter({
-  history: createWebHistory('/'),
+  // 紧急模式：使用Hash路由避免404问题
+  history: process.env.NODE_ENV === 'production' 
+    ? createWebHashHistory() 
+    : createWebHistory('/'),
   routes,
   scrollBehavior(to, from, savedPosition) {
     // 如果有保存的位置（例如浏览器前进/后退），返回到该位置
