@@ -9,6 +9,15 @@ export default defineConfig({
       '@': '/src'
     }
   },
+  build: {
+    outDir: 'dist',
+    assetsDir: 'assets',
+    rollupOptions: {
+      output: {
+        manualChunks: undefined
+      }
+    }
+  },
   server: {
     port: 5173,
     proxy: {
