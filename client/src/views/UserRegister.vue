@@ -19,34 +19,19 @@
           <p class="text-gray-600 mt-2">创建您的宝得利门窗账户</p>
         </div>
 
-        <!-- 进度指示器 -->
-        <div class="mb-8">
-          <div class="flex items-center justify-center space-x-4">
-            <div class="flex items-center">
-              <div :class="[
-                'w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium',
-                currentStep >= 1 ? 'bg-primary-600 text-white' : 'bg-gray-200 text-gray-500'
-              ]">
-                1
-              </div>
-              <span class="ml-2 text-sm text-gray-600">基本信息</span>
-            </div>
-            <div class="w-8 h-px bg-gray-300"></div>
-            <div class="flex items-center">
-              <div :class="[
-                'w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium',
-                currentStep >= 2 ? 'bg-primary-600 text-white' : 'bg-gray-200 text-gray-500'
-              ]">
-                2
-              </div>
-              <span class="ml-2 text-sm text-gray-600">验证手机</span>
-            </div>
+        <!-- 注册提示 -->
+        <div class="mb-8 text-center">
+          <div class="inline-flex items-center px-4 py-2 bg-green-50 border border-green-200 rounded-lg">
+            <svg class="w-5 h-5 text-green-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <span class="text-sm text-green-800">无需验证码，填写信息即可完成注册</span>
           </div>
         </div>
 
         <form @submit.prevent="handleRegister" class="space-y-6">
-          <!-- 第一步：基本信息 -->
-          <div v-show="currentStep === 1">
+          <!-- 注册信息表单 -->
+          <div>
             <!-- 姓名 -->
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-2">姓名 *</label>
@@ -164,55 +149,10 @@
             </div>
           </div>
 
-          <!-- 第二步：验证手机号 -->
-          <div v-show="currentStep === 2">
-            <div class="text-center mb-6">
-              <h3 class="text-lg font-medium text-gray-900 mb-2">验证手机号</h3>
-              <p class="text-sm text-gray-600">
-                验证码已发送至 <span class="font-medium text-primary-600">{{ registerForm.phone }}</span>
-              </p>
-            </div>
-
-            <!-- 验证码输入 -->
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">验证码 *</label>
-              <div class="flex space-x-3">
-                <input 
-                  v-model="registerForm.verificationCode"
-                  type="text" 
-                  maxlength="6"
-                  required
-                  class="flex-1 px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                  placeholder="请输入6位验证码"
-                />
-                <button 
-                  type="button"
-                  @click="resendVerificationCode"
-                  :disabled="countdown > 0"
-                  class="px-4 py-3 bg-primary-100 text-primary-700 rounded-xl hover:bg-primary-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors whitespace-nowrap"
-                >
-                  <span v-if="countdown > 0">{{ countdown }}s</span>
-                  <span v-else>重新发送</span>
-                </button>
-              </div>
-            </div>
-
-            <!-- 返回修改信息 -->
-            <div class="mt-4">
-              <button 
-                type="button"
-                @click="currentStep = 1"
-                class="text-sm text-primary-600 hover:text-primary-700 transition-colors"
-              >
-                返回修改信息
-              </button>
-            </div>
-          </div>
-
           <!-- 提交按钮 -->
           <button 
             type="submit"
-            :disabled="loading || !isCurrentStepValid"
+            :disabled="loading || !isFormValid"
             class="w-full bg-primary-600 text-white py-3 px-4 rounded-xl hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
           >
             <span v-if="loading">
@@ -220,10 +160,10 @@
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
               </svg>
-              {{ currentStep === 1 ? '发送验证码...' : '注册中...' }}
+              注册中...
             </span>
             <span v-else>
-              {{ currentStep === 1 ? '发送验证码' : '完成注册' }}
+              立即注册
             </span>
           </button>
         </form>
@@ -263,8 +203,6 @@ const route = useRoute()
 const userStore = useUserStore()
 
 const loading = ref(false)
-const currentStep = ref(1)
-const countdown = ref(0)
 const phoneError = ref('')
 const passwordError = ref('')
 const confirmPasswordError = ref('')
@@ -278,8 +216,7 @@ const registerForm = ref({
   confirmPassword: '',
   wechatId: '',
   district: '',
-  address: '',
-  verificationCode: ''
+  address: ''
 })
 
 // 福清市区县选项
@@ -313,21 +250,14 @@ const districtOptions = [
   { value: '一都镇', label: '🏘️ 一都镇' }
 ]
 
-let countdownTimer = null
-
-const isCurrentStepValid = computed(() => {
-  if (currentStep.value === 1) {
-    return registerForm.value.name && 
-           registerForm.value.phone && 
-           registerForm.value.password && 
-           registerForm.value.confirmPassword &&
-           !phoneError.value && 
-           !passwordError.value && 
-           !confirmPasswordError.value
-  } else if (currentStep.value === 2) {
-    return registerForm.value.verificationCode
-  }
-  return false
+const isFormValid = computed(() => {
+  return registerForm.value.name && 
+         registerForm.value.phone && 
+         registerForm.value.password && 
+         registerForm.value.confirmPassword &&
+         !phoneError.value && 
+         !passwordError.value && 
+         !confirmPasswordError.value
 })
 
 const validatePhone = () => {
@@ -349,8 +279,6 @@ const validatePassword = () => {
     passwordError.value = '请输入密码'
   } else if (password.length < 6) {
     passwordError.value = '密码长度至少6位'
-  } else if (!/^(?=.*[a-zA-Z])(?=.*\d)/.test(password)) {
-    passwordError.value = '密码至少包含一个字母和一个数字'
   }
   
   // 如果确认密码已填写，也重新验证确认密码
@@ -371,87 +299,39 @@ const validateConfirmPassword = () => {
   }
 }
 
-const startCountdown = () => {
-  countdown.value = 60
-  countdownTimer = setInterval(() => {
-    countdown.value--
-    if (countdown.value <= 0) {
-      clearInterval(countdownTimer)
-      countdownTimer = null
-    }
-  }, 1000)
-}
-
-const sendVerificationCode = async () => {
-  loading.value = true
+const handleRegister = async () => {
+  if (!isFormValid.value) return
   
-  try {
-    // 模拟发送验证码（实际项目中应该调用后端API）
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    
-    currentStep.value = 2
-    startCountdown()
-    
-    // 在开发环境下显示验证码
-    if (import.meta.env.DEV) {
-      alert('验证码: 123456 (开发环境)')
-    }
-  } catch (error) {
-    console.error('发送验证码失败:', error)
-    alert('发送验证码失败，请稍后重试')
-  } finally {
-    loading.value = false
-  }
-}
-
-const resendVerificationCode = async () => {
-  if (countdown.value > 0) return
-  
-  try {
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    startCountdown()
-    
-    if (import.meta.env.DEV) {
-      alert('验证码: 123456 (开发环境)')
-    }
-  } catch (error) {
-    console.error('重发验证码失败:', error)
-    alert('重发验证码失败，请稍后重试')
-  }
-}
-
-const completeRegister = async () => {
   loading.value = true
   
   try {
     // 调用后端注册API
-    const response = await fetch('/api/users/register', {
+    const response = await fetch('/.netlify/functions/users-register', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-      phone: registerForm.value.phone,
+        phone: registerForm.value.phone,
         password: registerForm.value.password,
-      name: registerForm.value.name,
-      wechatId: registerForm.value.wechatId,
-      district: registerForm.value.district,
-      address: registerForm.value.address,
-        verificationCode: registerForm.value.verificationCode
+        name: registerForm.value.name,
+        wechatId: registerForm.value.wechatId,
+        district: registerForm.value.district,
+        address: registerForm.value.address
       })
     })
     
     const result = await response.json()
     
     if (!result.success) {
-      throw new Error(result.message || '注册失败')
+      throw new Error(result.error || '注册失败')
     }
     
     // 保存用户信息到store
     await userStore.setUserInfo(result.data.user, result.data.token)
     
     // 显示成功提示
-    alert('注册成功！欢迎加入宝得利门窗！')
+    alert(result.data.message || '注册成功！欢迎加入宝得利门窗！')
     
     // 跳转到原来的页面或首页
     const redirectTo = route.query.redirect || '/'
@@ -465,28 +345,12 @@ const completeRegister = async () => {
   }
 }
 
-const handleRegister = async () => {
-  if (!isCurrentStepValid.value) return
-  
-  if (currentStep.value === 1) {
-    // 第一步：发送验证码
-    await sendVerificationCode()
-  } else if (currentStep.value === 2) {
-    // 第二步：完成注册
-    await completeRegister()
-  }
-}
-
 const goBack = () => {
   const redirectTo = route.query.redirect || '/'
   router.push(redirectTo)
 }
 
-onUnmounted(() => {
-  if (countdownTimer) {
-    clearInterval(countdownTimer)
-  }
-})
+
 </script>
 
 <style scoped>

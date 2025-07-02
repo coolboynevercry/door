@@ -32,12 +32,18 @@ exports.handler = async (event, context) => {
       };
     }
 
-    const { Product } = models;
+    const { Product, Category } = models;
 
     switch (event.httpMethod) {
       case 'GET':
-        // 获取产品列表
+        // 获取产品列表，包含分类信息
         const products = await Product.findAll({
+          include: [{
+            model: Category,
+            as: 'category',
+            attributes: ['id', 'name', 'description']
+          }],
+          where: { status: 'active' },
           order: [['createdAt', 'DESC']]
         });
 
@@ -49,14 +55,27 @@ exports.handler = async (event, context) => {
           },
           body: JSON.stringify({
             success: true,
-            data: products
+            data: products,
+            count: products.length
           })
         };
 
       case 'POST':
         // 创建新产品
         const body = JSON.parse(event.body || '{}');
-        const { name, category, price, description, imageUrl } = body;
+        const { 
+          name, 
+          categoryId, 
+          price, 
+          originalPrice,
+          unit,
+          description, 
+          specifications,
+          imageUrl,
+          images,
+          stock,
+          tags
+        } = body;
 
         if (!name) {
           return {
@@ -72,12 +91,46 @@ exports.handler = async (event, context) => {
           };
         }
 
+        // 验证分类是否存在
+        if (categoryId) {
+          const categoryExists = await Category.findByPk(categoryId);
+          if (!categoryExists) {
+            return {
+              statusCode: 400,
+              headers: {
+                'Access-Control-Allow-Origin': '*',
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                success: false,
+                error: '指定的分类不存在'
+              })
+            };
+          }
+        }
+
         const newProduct = await Product.create({
           name,
-          category,
+          categoryId: categoryId || null,
           price: parseFloat(price) || 0,
+          originalPrice: originalPrice ? parseFloat(originalPrice) : null,
+          unit: unit || '扇',
           description,
-          imageUrl
+          specifications: specifications || null,
+          imageUrl,
+          images: images || null,
+          stock: parseInt(stock) || 0,
+          tags: tags || null,
+          status: 'active'
+        });
+
+        // 返回创建的产品，包含分类信息
+        const productWithCategory = await Product.findByPk(newProduct.id, {
+          include: [{
+            model: Category,
+            as: 'category',
+            attributes: ['id', 'name', 'description']
+          }]
         });
 
         return {
@@ -88,7 +141,8 @@ exports.handler = async (event, context) => {
           },
           body: JSON.stringify({
             success: true,
-            data: newProduct
+            data: productWithCategory,
+            message: '产品创建成功'
           })
         };
 
