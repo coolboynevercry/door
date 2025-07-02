@@ -1,6 +1,6 @@
-import { apiHandler, adminApiHandler, createApiResponse } from '../../lib/auth.js';
-import { sql } from '../../lib/database.js';
-import { calculatePagination, validators, sanitizers } from '../../lib/utils.js';
+const { apiHandler, adminApiHandler, createApiResponse } = require('../../lib/auth');
+const { connectToDatabase, sql } = require('../../lib/database');
+const { calculatePagination, validators, sanitizers } = require('../../lib/utils');
 
 // 获取商品列表 (公开接口)
 async function getProducts(req, res) {
@@ -13,61 +13,52 @@ async function getProducts(req, res) {
       status = 'active' 
     } = req.query;
 
-    // 构建查询条件
-    let whereConditions = ['status = $1'];
-    let queryParams = [status];
-    let paramIndex = 2;
+    // 连接数据库
+    const { Product } = await connectToDatabase();
 
+    // 构建查询条件
+    const whereConditions = { status };
+    
     if (category) {
-      whereConditions.push(`category = $${paramIndex}`);
-      queryParams.push(category);
-      paramIndex++;
+      whereConditions.category = category;
     }
 
     if (search) {
-      whereConditions.push(`(name ILIKE $${paramIndex} OR description ILIKE $${paramIndex})`);
-      queryParams.push(`%${search}%`);
-      paramIndex++;
+      const { Op } = require('sequelize');
+      whereConditions[Op.or] = [
+        { name: { [Op.iLike]: `%${search}%` } },
+        { description: { [Op.iLike]: `%${search}%` } }
+      ];
     }
 
-    const whereClause = whereConditions.join(' AND ');
-
-    // 获取总数
-    const countQuery = `SELECT COUNT(*) as total FROM products WHERE ${whereClause}`;
-    const countResult = await sql.unsafe(countQuery, queryParams);
-    const total = parseInt(countResult.rows[0].total);
-
     // 计算分页
-    const pagination = calculatePagination(page, limit, total);
+    const pagination = calculatePagination(page, limit);
 
-    // 获取商品列表
-    const productsQuery = `
-      SELECT 
-        id, name, category, subcategory, specification, description,
-        price, price_unit, image, material, specifications,
-        colors, features, variants, status, created_at, updated_at
-      FROM products 
-      WHERE ${whereClause}
-      ORDER BY created_at DESC 
-      LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
-    `;
-    
-    const productsResult = await sql.unsafe(productsQuery, [
-      ...queryParams,
-      pagination.limit,
-      pagination.offset
-    ]);
+    // 获取商品列表和总数
+    const { rows: products, count: total } = await Product.findAndCountAll({
+      where: whereConditions,
+      order: [['createdAt', 'DESC']],
+      limit: pagination.limit,
+      offset: pagination.offset
+    });
 
-    const products = productsResult.rows.map(product => ({
-      ...product,
+    // 格式化数据
+    const formattedProducts = products.map(product => ({
+      id: product.id,
+      name: product.name,
+      category: product.category,
+      description: product.description,
       price: parseFloat(product.price),
-      colors: product.colors ? JSON.parse(product.colors) : [],
-      features: product.features ? JSON.parse(product.features) : [],
-      variants: product.variants ? JSON.parse(product.variants) : []
+      specifications: product.specifications,
+      images: product.images,
+      stock: product.stock,
+      status: product.status,
+      createdAt: product.createdAt,
+      updatedAt: product.updatedAt
     }));
 
     return createApiResponse(true, {
-      products,
+      products: formattedProducts,
       pagination: {
         ...pagination,
         total
@@ -86,17 +77,11 @@ async function createProduct(req, res) {
     const {
       name,
       category,
-      subcategory,
-      specification,
       description,
       price,
-      priceUnit = '个',
-      image,
-      material,
       specifications,
-      colors = [],
-      features = [],
-      variants = []
+      images = [],
+      stock = 0
     } = req.body;
 
     // 数据验证
@@ -104,60 +89,39 @@ async function createProduct(req, res) {
       return createApiResponse(false, null, '商品名称不能为空', 400);
     }
 
-    if (!validators.required(category)) {
-      return createApiResponse(false, null, '商品分类不能为空', 400);
-    }
-
     if (!validators.price(price)) {
       return createApiResponse(false, null, '请输入有效的价格', 400);
     }
 
+    // 连接数据库
+    const { Product } = await connectToDatabase();
+
     // 数据清理
     const cleanData = {
       name: sanitizers.trim(name),
-      category: sanitizers.trim(category),
-      subcategory: subcategory ? sanitizers.trim(subcategory) : null,
-      specification: specification ? sanitizers.trim(specification) : null,
+      category: category ? sanitizers.trim(category) : null,
       description: description ? sanitizers.trim(description) : null,
       price: sanitizers.number(price),
-      priceUnit: sanitizers.trim(priceUnit),
-      image: image ? sanitizers.trim(image) : null,
-      material: material ? sanitizers.trim(material) : null,
-      specifications: specifications ? sanitizers.trim(specifications) : null,
-      colors: JSON.stringify(colors),
-      features: JSON.stringify(features),
-      variants: JSON.stringify(variants)
+      specifications: specifications || null,
+      images: images || null,
+      stock: stock || 0
     };
 
-    // 插入数据库
-    const result = await sql`
-      INSERT INTO products (
-        name, category, subcategory, specification, description,
-        price, price_unit, image, material, specifications,
-        colors, features, variants, status, created_at, updated_at
-      ) VALUES (
-        ${cleanData.name}, ${cleanData.category}, ${cleanData.subcategory},
-        ${cleanData.specification}, ${cleanData.description}, ${cleanData.price},
-        ${cleanData.priceUnit}, ${cleanData.image}, ${cleanData.material},
-        ${cleanData.specifications}, ${cleanData.colors}, ${cleanData.features},
-        ${cleanData.variants}, 'active', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
-      ) RETURNING id, name, category, price, created_at
-    `;
-
-    const newProduct = result.rows[0];
+    // 创建商品
+    const newProduct = await Product.create(cleanData);
 
     return createApiResponse(true, {
       id: newProduct.id,
       name: newProduct.name,
       category: newProduct.category,
       price: parseFloat(newProduct.price),
-      createdAt: newProduct.created_at
+      createdAt: newProduct.createdAt
     }, '商品创建成功', 201);
 
   } catch (error) {
     console.error('Create product error:', error);
     
-    if (error.code === '23505') { // 唯一约束违反
+    if (error.name === 'SequelizeUniqueConstraintError') {
       return createApiResponse(false, null, '商品名称已存在', 400);
     }
     
@@ -166,7 +130,7 @@ async function createProduct(req, res) {
 }
 
 // 主处理函数
-export default apiHandler(async (req, res) => {
+module.exports = apiHandler(async (req, res) => {
   switch (req.method) {
     case 'GET':
       return await getProducts(req, res);
