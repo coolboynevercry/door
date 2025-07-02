@@ -419,4 +419,371 @@ export default async function handler(req, res) {
    - 响应时间监控
    - 资源使用监控
 
+## 🔄 日常更新操作指南
+
+现在您的网站已成功部署，以下是完整的日常更新操作流程：
+
+### 📋 更新流程总览
+
+```mermaid
+graph TD
+    A[本地开发] --> B[代码修改]
+    B --> C[本地测试]
+    C --> D[Git提交]
+    D --> E[推送到GitHub]
+    E --> F[Vercel自动部署]
+    F --> G[验证部署结果]
+    G --> H[监控生产环境]
+```
+
+### 🛠️ Step 1: 本地开发环境
+
+#### 启动本地开发服务器
+```bash
+# 方式1: 使用Vercel本地环境 (推荐)
+vercel dev
+# 访问: http://localhost:3000
+
+# 方式2: 分别启动前后端 (调试用)
+# 终端1: 启动后端
+cd server && npm run dev
+
+# 终端2: 启动前端  
+cd client && npm run dev
+```
+
+#### 环境变量配置
+```bash
+# 创建本地环境变量文件
+cp .env.local.example .env.local
+
+# 编辑环境变量
+# JWT_SECRET=your-local-jwt-secret
+# ADMIN_USERNAME=admin
+# ADMIN_PASSWORD=admin123
+```
+
+### ✏️ Step 2: 代码修改操作
+
+#### 前端修改 (Vue.js)
+```bash
+# 页面修改
+vi client/src/views/Home.vue          # 首页
+vi client/src/views/ProductDetail.vue # 商品详情
+vi client/src/views/Cart.vue          # 购物车
+
+# 组件修改
+vi client/src/components/Header.vue   # 头部组件
+vi client/src/components/ProductCard.vue # 商品卡片
+
+# 样式修改
+vi client/src/style.css               # 全局样式
+
+# 路由修改
+vi client/src/router/index.js         # 路由配置
+```
+
+#### 后端API修改 (Serverless Functions)
+```bash
+# 商品相关API
+vi api/products/index.js              # 商品列表、创建
+vi api/products/[id].js               # 商品详情、更新、删除
+
+# 用户相关API
+vi api/users/login.js                 # 用户登录
+vi api/users/register.js              # 用户注册
+
+# 管理员API
+vi api/admin/login.js                 # 管理员登录
+vi api/admin/stats.js                 # 统计数据
+
+# 共享库修改
+vi lib/database.js                    # 数据库连接
+vi lib/auth.js                        # 身份验证
+vi lib/utils.js                       # 工具函数
+```
+
+### 🧪 Step 3: 本地测试
+
+#### 前端测试
+```bash
+# 开发服务器测试
+vercel dev
+# 浏览器访问: http://localhost:3000
+
+# 构建测试
+cd client
+npm run build                         # 检查构建是否成功
+npm run preview                       # 预览构建结果
+```
+
+#### API测试
+```bash
+# 健康检查
+curl http://localhost:3000/api/health
+
+# 商品API测试
+curl http://localhost:3000/api/products
+curl -X POST http://localhost:3000/api/products \
+  -H "Content-Type: application/json" \
+  -d '{"name":"测试商品","price":100}'
+
+# 用户API测试
+curl -X POST http://localhost:3000/api/users/login \
+  -H "Content-Type: application/json" \
+  -d '{"phone":"13800138000","password":"123456"}'
+```
+
+### 💾 Step 4: Git提交流程
+
+#### 标准Git工作流
+```bash
+# 1. 查看更改状态
+git status
+
+# 2. 添加更改文件
+git add .                             # 添加所有更改
+# 或者
+git add client/src/views/Home.vue     # 只添加特定文件
+
+# 3. 提交更改
+git commit -m "feat: 更新首页产品展示布局"
+
+# 4. 推送到GitHub
+git push origin main
+```
+
+#### 提交信息规范
+```bash
+# 功能新增
+git commit -m "feat: 添加商品搜索功能"
+
+# Bug修复
+git commit -m "fix: 修复购物车数量计算错误"
+
+# 样式更新
+git commit -m "style: 优化移动端页面布局"
+
+# 文档更新
+git commit -m "docs: 更新API使用说明"
+
+# 重构代码
+git commit -m "refactor: 重构用户认证逻辑"
+```
+
+### 🚀 Step 5: 自动部署
+
+推送代码后，Vercel会自动执行以下流程：
+
+```bash
+# Vercel自动部署流程
+1. 检测到GitHub推送
+2. 下载最新代码
+3. 安装依赖包
+4. 构建前端项目
+5. 部署Serverless Functions
+6. 更新生产环境
+7. 发送部署通知
+```
+
+#### 部署状态监控
+```bash
+# 查看部署状态
+vercel ls                             # 列出所有部署
+
+# 查看部署日志
+vercel logs [deployment-url]          # 查看特定部署日志
+
+# 查看函数日志
+vercel logs --follow                  # 实时查看日志
+```
+
+### 📊 Step 6: 验证部署结果
+
+#### 生产环境测试
+```bash
+# 替换 your-app.vercel.app 为您的实际域名
+
+# 健康检查
+curl https://your-app.vercel.app/api/health
+
+# 功能测试
+curl https://your-app.vercel.app/api/products
+curl -X POST https://your-app.vercel.app/api/admin/login \
+  -H "Content-Type: application/json" \
+  -d '{"username":"admin","password":"your-password"}'
+```
+
+#### 前端页面检查
+- ✅ 页面加载正常
+- ✅ 样式显示正确
+- ✅ 功能交互正常
+- ✅ 移动端兼容性
+
+### 🎯 常见更新场景
+
+#### 场景1: 更新商品信息
+```bash
+# 1. 修改商品管理页面
+vi client/src/views/ProductAdmin.vue
+
+# 2. 更新商品API
+vi api/products/index.js
+
+# 3. 测试功能
+vercel dev
+# 测试添加、编辑、删除商品
+
+# 4. 提交部署
+git add .
+git commit -m "feat: 优化商品管理界面和API"
+git push origin main
+```
+
+#### 场景2: 修复Bug
+```bash
+# 1. 定位问题
+# 查看Vercel日志或用户反馈
+
+# 2. 修复代码
+vi client/src/views/Cart.vue  # 假设购物车有问题
+
+# 3. 本地验证修复
+vercel dev
+# 重现问题并验证修复
+
+# 4. 紧急部署
+git add .
+git commit -m "fix: 修复购物车商品数量更新问题"
+git push origin main
+```
+
+#### 场景3: 添加新功能
+```bash
+# 1. 创建功能分支 (推荐)
+git checkout -b feature/user-favorites
+
+# 2. 开发新功能
+# 添加收藏功能相关文件
+touch client/src/views/UserFavorites.vue
+touch api/favorites/index.js
+
+# 3. 开发完成后合并
+git add .
+git commit -m "feat: 添加用户收藏功能"
+git checkout main
+git merge feature/user-favorites
+git push origin main
+```
+
+#### 场景4: 数据库更新
+```bash
+# 1. 修改数据库模型
+vi lib/database.js
+
+# 2. 更新迁移脚本
+vi scripts/migrateToVercel.js
+
+# 3. 在Vercel控制台执行迁移
+# 或通过API触发迁移
+
+# 4. 提交代码更改
+git add .
+git commit -m "db: 添加用户收藏表"
+git push origin main
+```
+
+### 🛡️ 紧急回滚操作
+
+#### 方式1: Vercel Dashboard回滚
+```bash
+1. 登录 https://vercel.com/dashboard
+2. 选择项目 > 查看部署历史
+3. 找到稳定版本，点击 "Promote to Production"
+```
+
+#### 方式2: Git回滚
+```bash
+# 查看提交历史
+git log --oneline -10
+
+# 回滚到指定版本 (谨慎使用)
+git reset --hard <stable-commit-hash>
+git push -f origin main
+```
+
+### 🔧 环境变量更新
+
+#### 更新生产环境变量
+```bash
+1. 访问 Vercel Dashboard
+2. 项目设置 > Environment Variables
+3. 更新或添加变量:
+   - JWT_SECRET
+   - ADMIN_PASSWORD
+   - POSTGRES_URL
+   - 其他敏感配置
+
+4. 重新部署项目使变量生效
+```
+
+### 📱 快速更新脚本
+
+创建快速更新脚本简化操作：
+
+```bash
+# 创建更新脚本
+cat > quick-update.sh << 'EOF'
+#!/bin/bash
+echo "🔍 检查状态..."
+git status
+
+echo "📝 添加更改..."
+git add .
+
+echo "请输入提交信息:"
+read -p "提交描述: " message
+
+if [ -z "$message" ]; then
+    message="Update: $(date '+%Y-%m-%d %H:%M:%S')"
+fi
+
+echo "💾 提交更改..."
+git commit -m "$message"
+
+echo "🚀 推送到GitHub..."
+git push origin main
+
+echo "✅ 完成！查看部署状态: https://vercel.com/dashboard"
+EOF
+
+chmod +x quick-update.sh
+
+# 使用方法
+./quick-update.sh
+```
+
+### 📈 性能监控
+
+#### 定期检查项目
+- 🔍 **Vercel Analytics**: 查看页面访问数据
+- 📊 **Functions日志**: 监控API调用情况
+- 🚨 **错误追踪**: 及时发现和修复问题
+- 💰 **资源使用**: 监控免费额度使用情况
+
+#### 优化建议
+```bash
+# 前端优化
+- 图片压缩和懒加载
+- 代码分割和缓存
+- CSS和JS压缩
+
+# 后端优化  
+- 数据库查询优化
+- API响应缓存
+- 函数冷启动优化
+```
+
 🎉 恭喜！您已成功将Express应用重构为Vercel Serverless Functions！ 
+
+现在您拥有了完整的网站更新操作流程，可以轻松维护和扩展您的宝得利门窗系统！
