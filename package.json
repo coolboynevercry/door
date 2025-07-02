@@ -10,6 +10,7 @@
     "deploy": "netlify deploy --prod"
   },
   "dependencies": {
+    "@netlify/neon": "^0.8.1",
     "sequelize": "^6.37.1",
     "pg": "^8.11.3",
     "bcryptjs": "^2.4.3",

@@ -3,10 +3,12 @@ const { Sequelize } = require('sequelize');
 
 // 数据库配置
 const getDatabaseUrl = () => {
-  // 优先级：Supabase > Railway > 其他PostgreSQL
-  return process.env.SUPABASE_DB_URL || 
-         process.env.RAILWAY_DATABASE_URL || 
+  // 优先级：Netlify Neon > 其他 Neon > Supabase > Railway > 其他PostgreSQL
+  return process.env.NETLIFY_DATABASE_URL || 
+         process.env.NEON_DATABASE_URL || 
          process.env.DATABASE_URL ||
+         process.env.SUPABASE_DB_URL || 
+         process.env.RAILWAY_DATABASE_URL || 
          process.env.POSTGRES_URL;
 };
 
@@ -24,14 +26,11 @@ const initDatabase = () => {
   }
 
   try {
-    sequelize = new Sequelize(databaseUrl, {
+    // 检查是否是Neon数据库连接
+    const isNeonDb = databaseUrl.includes('neon.tech');
+    
+    const config = {
       dialect: 'postgres',
-      dialectOptions: {
-        ssl: {
-          require: true,
-          rejectUnauthorized: false
-        }
-      },
       logging: process.env.NODE_ENV === 'development' ? console.log : false,
       pool: {
         max: 5,
@@ -39,7 +38,23 @@ const initDatabase = () => {
         acquire: 30000,
         idle: 10000
       }
-    });
+    };
+
+    // 根据数据库类型配置SSL
+    if (isNeonDb) {
+      // Neon数据库配置 - 连接字符串已包含SSL参数，无需额外配置
+      // Neon连接字符串包含?sslmode=require，Sequelize会自动处理
+    } else {
+      // 其他数据库配置
+      config.dialectOptions = {
+        ssl: {
+          require: true,
+          rejectUnauthorized: false
+        }
+      };
+    }
+
+    sequelize = new Sequelize(databaseUrl, config);
 
     console.log('✅ 数据库连接初始化成功');
     return sequelize;

@@ -13,7 +13,7 @@
   # Functions目录
   directory = "netlify/functions"
   # 外部Node模块
-  external_node_modules = ["@vercel/postgres", "@vercel/blob", "jsonwebtoken", "bcryptjs", "sequelize", "pg"]
+  external_node_modules = ["@netlify/neon", "@vercel/postgres", "@vercel/blob", "jsonwebtoken", "bcryptjs", "sequelize", "pg"]
 
 # 重定向规则 (SPA路由支持)
 [[redirects]]
