@@ -1,7 +1,7 @@
-import { apiHandler } from '../lib/auth.js';
-import { healthCheck } from '../lib/database.js';
+const { apiHandler } = require('../lib/auth');
+const { healthCheck } = require('../lib/database');
 
-export default apiHandler(async (req, res) => {
+module.exports = apiHandler(async (req, res) => {
   if (req.method !== 'GET') {
     return {
       success: false,
