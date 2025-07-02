@@ -175,6 +175,7 @@ exports.handler = async (event, context) => {
     }
   }
 
+  // GET请求：继续原有的数据库测试逻辑
   const testResults = {
     timestamp: new Date().toISOString(),
     steps: [],
