@@ -1,0 +1,19 @@
+{
+  "name": "baodeli-door-window-system",
+  "version": "1.0.0",
+  "description": "宝得利门窗订购网站",
+  "scripts": {
+    "start": "npm run start:server",
+    "start:server": "cd server && npm start",
+    "start:client": "cd client && npm run dev",
+    "dev": "concurrently \"npm run start:server\" \"npm run start:client\"",
+    "install:all": "npm install && cd server && npm install && cd ../client && npm install"
+  },
+  "dependencies": {
+    "sqlite3": "^5.1.7"
+  },
+  "devDependencies": {
+    "concurrently": "^7.6.0",
+    "node-fetch": "^2.7.0"
+  }
+}
