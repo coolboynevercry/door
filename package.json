@@ -1,37 +1,33 @@
 {
-  "name": "baodeli-vercel-fullstack",
-  "version": "2.0.0",
-  "description": "宝得利门窗订购网站 - Vercel全栈版本",
-  "private": true,
-  "type": "module",
+  "name": "door-window-netlify",
+  "version": "1.0.0",
+  "description": "门窗订购系统 - Netlify版本",
+  "main": "index.js",
   "scripts": {
-    "dev": "vercel dev",
+    "dev": "netlify dev",
     "build": "cd client && npm install && npm run build",
-    "start": "vercel --prod",
-    "init-db": "node scripts/initVercelDB.js",
-    "migrate": "node scripts/migrateToVercel.js"
+    "start": "netlify dev",
+    "deploy": "netlify deploy --prod"
   },
   "dependencies": {
-    "@vercel/postgres": "^0.10.0",
-    "@vercel/blob": "^0.15.1",
-    "jsonwebtoken": "^9.0.2",
-    "bcryptjs": "^2.4.3"
+    "sequelize": "^6.37.1",
+    "pg": "^8.11.3",
+    "bcryptjs": "^2.4.3",
+    "jsonwebtoken": "^9.0.2"
   },
   "devDependencies": {
-    "vercel": "^37.0.0"
+    "netlify-cli": "^17.15.4"
   },
   "engines": {
     "node": ">=18.0.0"
   },
   "keywords": [
-    "vercel",
+    "netlify",
     "serverless",
+    "door-window",
     "vue",
-    "postgres",
-    "ecommerce",
-    "doors",
-    "windows"
+    "postgresql"
   ],
-  "author": "宝得利门窗",
+  "author": "Door Window Shop",
   "license": "MIT"
 }
