@@ -5,8 +5,8 @@
   publish = "client/dist"
 
 [build.environment]
-  # Node.js版本
-  NODE_VERSION = "18"
+  # Node.js版本 - Netlify DB需要20.12.2+
+  NODE_VERSION = "20"
 
 # Netlify Functions配置
 [functions]
