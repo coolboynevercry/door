@@ -125,8 +125,6 @@ exports.handler = async (event, context) => {
         };
         const token = Buffer.from(JSON.stringify(tokenPayload)).toString('base64');
 
-        await client.end();
-
         return {
           statusCode: 200,
           headers: {
