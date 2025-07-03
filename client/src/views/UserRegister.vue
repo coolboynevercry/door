@@ -305,8 +305,8 @@ const handleRegister = async () => {
   loading.value = true
   
   try {
-    // 调用后端注册API（使用简单版本）
-    const response = await fetch('/.netlify/functions/register-simple', {
+    // 调用后端注册API（使用已验证的test-neon-direct）
+    const response = await fetch('/.netlify/functions/test-neon-direct', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
