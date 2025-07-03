@@ -305,8 +305,8 @@ const handleRegister = async () => {
   loading.value = true
   
   try {
-    // 调用后端注册API（使用基于admin-login结构的user-register）
-    const response = await fetch('/.netlify/functions/user-register', {
+    // 调用后端注册API（使用已验证的admin-login函数）
+    const response = await fetch('/.netlify/functions/admin-login', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
