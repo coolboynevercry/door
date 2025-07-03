@@ -6,6 +6,7 @@ const JWT_SECRET = process.env.JWT_SECRET || 'netlify-door-window-secret-2024';
 
 // 用户注册处理函数
 async function handleUserRegister(body) {
+  console.log('🎯 进入用户注册处理函数，数据:', body);
   const { phone, password, name, wechatId, district, address } = body;
 
   // 验证必填字段
@@ -175,11 +176,15 @@ exports.handler = async (event, context) => {
 
   try {
     const body = JSON.parse(event.body || '{}');
+    console.log('🔍 接收到的请求数据:', body);
     
     // 检查是否是用户注册请求（包含name字段）
     if (body.name) {
+      console.log('✅ 检测到用户注册请求，执行注册逻辑');
       return await handleUserRegister(body);
     }
+    
+    console.log('👔 执行管理员登录逻辑');
     
     // 管理员登录逻辑
     const { username, password } = body;
