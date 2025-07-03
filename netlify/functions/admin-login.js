@@ -176,15 +176,29 @@ exports.handler = async (event, context) => {
 
   try {
     const body = JSON.parse(event.body || '{}');
-    console.log('🔍 接收到的请求数据:', body);
+    
+    // 调试：返回接收到的数据
+    if (body.debug) {
+      return {
+        statusCode: 200,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          success: true,
+          debug: true,
+          receivedData: body,
+          hasName: !!body.name,
+          keys: Object.keys(body)
+        })
+      };
+    }
     
     // 检查是否是用户注册请求（包含name字段）
     if (body.name) {
-      console.log('✅ 检测到用户注册请求，执行注册逻辑');
       return await handleUserRegister(body);
     }
-    
-    console.log('👔 执行管理员登录逻辑');
     
     // 管理员登录逻辑
     const { username, password } = body;
@@ -198,7 +212,13 @@ exports.handler = async (event, context) => {
         },
         body: JSON.stringify({
           success: false,
-          error: '用户名和密码不能为空'
+          error: '用户名和密码不能为空',
+          debug: {
+            receivedData: body,
+            hasName: !!body.name,
+            hasUsername: !!body.username,
+            keys: Object.keys(body)
+          }
         })
       };
     }
